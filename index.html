@@ -1,0 +1,819 @@
+<title>Docket</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Docket">
+<meta name="theme-color" content="#EDE8DC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#21201B" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-512.png" sizes="512x512">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ---------- tokens ---------- */
+  :root{
+    --paper: #E7E2D3;
+    --paper-raised: #F8F5EC;
+    --paper-raised-2: #F1EDE0;
+    --ink: #2A2822;
+    --ink-soft: #746D5C;
+    --ink-faint: #A39C88;
+    --rule: #D9D1BC;
+    --accent: #3E6259;
+    --accent-strong: #2E4B43;
+    --accent-contrast: #F8F5EC;
+    --amber: #8C6A2E;
+    --amber-strong: #6E5222;
+    --danger: #9C4A3A;
+    --overlay: rgba(38, 36, 30, 0.5);
+    --shadow: 0 1px 2px rgba(42,40,34,0.06), 0 8px 24px rgba(42,40,34,0.08);
+
+    --font-display: 'Fraunces', Georgia, 'Iowan Old Style', serif;
+    --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+    --radius-sm: 5px; --radius-md: 10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper: #1C1B17;
+      --paper-raised: #26241E;
+      --paper-raised-2: #2E2B23;
+      --ink: #EDE7D8;
+      --ink-soft: #A69C89;
+      --ink-faint: #706A5A;
+      --rule: #3B392F;
+      --accent: #7FAE9E;
+      --accent-strong: #9BC3B4;
+      --accent-contrast: #16211D;
+      --amber: #D3A55C;
+      --amber-strong: #E5BC7C;
+      --danger: #D98872;
+      --overlay: rgba(0,0,0,0.6);
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper: #1C1B17;
+    --paper-raised: #26241E;
+    --paper-raised-2: #2E2B23;
+    --ink: #EDE7D8;
+    --ink-soft: #A69C89;
+    --ink-faint: #706A5A;
+    --rule: #3B392F;
+    --accent: #7FAE9E;
+    --accent-strong: #9BC3B4;
+    --accent-contrast: #16211D;
+    --amber: #D3A55C;
+    --amber-strong: #E5BC7C;
+    --danger: #D98872;
+    --overlay: rgba(0,0,0,0.6);
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.45;
+    -webkit-tap-highlight-color: transparent;
+    width: 100%;
+  }
+  h1,h2,h3{ font-family: var(--font-display); text-wrap: balance; margin:0; }
+  button, input{ font-family: inherit; color: inherit; }
+  button{ cursor:pointer; }
+  :focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  #shell{
+    max-width: 480px;
+    margin-inline: auto;
+    min-height: 100dvh;
+    background: var(--paper-raised);
+    box-shadow: var(--shadow);
+    display:flex;
+    flex-direction:column;
+    position: relative;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    padding: max(env(safe-area-inset-top), var(--space-4)) var(--space-4) 0;
+    background: var(--paper-raised);
+    position: sticky; top:0; z-index: 5;
+  }
+  .brand-row{ display:flex; align-items:baseline; justify-content:space-between; gap: var(--space-3); }
+  .brand{ font-size: 1.5rem; font-weight:600; letter-spacing: -0.01em; }
+  .brand small{ display:block; font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); font-weight:400; margin-top: 2px;}
+  .tabs{ display:flex; gap: var(--space-5); margin-top: var(--space-4); border-bottom: 1px solid var(--rule); }
+  .tab{
+    background:none; border:none; padding: var(--space-2) 0 var(--space-3);
+    font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-faint); border-bottom: 2px solid transparent; margin-bottom:-1px;
+  }
+  .tab.active{ color: var(--ink); border-bottom-color: var(--accent); }
+  .tab .count{ color: var(--ink-faint); }
+  .tab.active .count{ color: var(--amber); }
+
+  /* list-view header (back arrow etc) */
+  .list-header{ display:flex; align-items:flex-start; gap: var(--space-3); padding-bottom: var(--space-4); }
+  .icon-btn{
+    background: var(--paper-raised-2); border: none; border-radius: 999px;
+    width: 36px; height:36px; min-width:36px; display:flex; align-items:center; justify-content:center;
+    color: var(--ink); font-size: 1.1rem;
+  }
+  .icon-btn.danger{ color: var(--danger); }
+  .list-header .titles{ flex:1; min-width:0; }
+  .list-title{
+    font-size: 1.375rem; font-weight:600; border:none; background:none; width:100%; padding:0;
+    font-family: var(--font-display); color: var(--ink);
+  }
+  .list-sub{ display:flex; align-items:center; gap: var(--space-2); margin-top: var(--space-1); flex-wrap: wrap; }
+  .date-pill{
+    font-family: var(--font-mono); font-size: 0.75rem; color: var(--amber); background: none;
+    border: 1px dashed var(--amber); border-radius: 999px; padding: 2px 10px; letter-spacing: 0.02em;
+  }
+  .date-pill.past{ color: var(--ink-faint); border-color: var(--ink-faint); }
+  .breadcrumb{ font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-faint); }
+  .header-actions{ display:flex; gap: var(--space-2); }
+
+  .date-editor{ display:flex; align-items:center; gap: var(--space-2); flex-wrap:wrap; margin-top: var(--space-2); }
+  .date-editor input[type="date"]{
+    font-family: var(--font-mono); font-size: 0.8125rem; border: 1px solid var(--rule);
+    background: var(--paper-raised-2); color: var(--ink); border-radius: var(--radius-sm); padding: 4px 6px;
+  }
+  .date-editor .arrow{ color: var(--ink-faint); }
+  .date-editor button{ background:none; border:none; font-family: var(--font-mono); font-size:0.75rem; color: var(--accent); padding: 4px 2px; }
+
+  /* ---------- scroll area ---------- */
+  main{ flex:1; overflow-y:auto; padding: var(--space-4); padding-bottom: var(--space-6); }
+
+  /* ---------- list cards (home / archive) ---------- */
+  .cards{ display:flex; flex-direction:column; gap: var(--space-3); }
+  .list-card{
+    display:block; width:100%; text-align:left; background: var(--paper-raised-2);
+    border: none; border-left: 3px solid var(--accent); border-radius: var(--radius-sm);
+    padding: var(--space-3) var(--space-4); position:relative;
+  }
+  .list-card.is-archived{ border-left-color: var(--ink-faint); }
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap: var(--space-3); }
+  .card-title{ font-family: var(--font-display); font-size: 1.0625rem; font-weight:600; }
+  .card-count{ font-family: var(--font-mono); font-size: 0.8125rem; color: var(--ink-soft); white-space:nowrap; }
+  .card-date{ font-family: var(--font-mono); font-size: 0.6875rem; color: var(--amber); letter-spacing:0.02em; margin-top: 2px; }
+  .card-date.past{ color: var(--ink-faint); }
+  .card-rule{ height:1px; background: var(--rule); margin-top: var(--space-2); position:relative; overflow:hidden; }
+  .card-rule i{ display:block; height:100%; background: var(--accent); }
+  .card-trash{
+    position:absolute; top: var(--space-2); right: var(--space-2); background:none; border:none;
+    color: var(--ink-faint); font-size: 1rem; padding: 6px;
+  }
+
+  .empty{ color: var(--ink-faint); font-size: 0.9rem; padding: var(--space-6) var(--space-2); text-align:center; }
+  .empty span{ display:block; font-family: var(--font-display); font-size:1.1rem; color: var(--ink-soft); margin-bottom: var(--space-2); }
+
+  /* ---------- items ---------- */
+  .items{ margin-top: var(--space-2); }
+  .item-row{ display:flex; align-items:center; gap: var(--space-3); padding-block: var(--space-3); border-bottom: 1px solid var(--rule); }
+  .item-row.done .item-text{ color: var(--ink-faint); text-decoration: line-through; text-decoration-color: var(--ink-faint); }
+  .remove-dot{
+    width:22px; height:22px; min-width:22px; border-radius:999px; background: var(--danger); color: var(--accent-contrast);
+    border:none; font-size: 0.95rem; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .checkbox{
+    width:22px; height:22px; min-width:22px; border-radius:5px; border: 1.5px solid var(--ink-faint);
+    background: transparent; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .checkbox.checked{ background: var(--accent); border-color: var(--accent); }
+  .checkbox svg{ width:13px; height:13px; display:none; stroke: var(--accent-contrast); }
+  .checkbox.checked svg{ display:block; }
+  .item-text{
+    flex:1; min-width:0; background:none; border:none; text-align:left; padding:0; font-size: 0.9375rem;
+    overflow-wrap: anywhere;
+  }
+  .sublist-btn{
+    display:flex; align-items:center; gap:4px; background:none; border:none; color: var(--amber);
+    font-family: var(--font-mono); font-size: 0.75rem; padding: 4px; opacity: 0.55; flex-shrink:0;
+  }
+  .sublist-btn.has-sub{ opacity: 1; }
+  .sublist-btn svg{ width:14px; height:14px; }
+
+  /* ---------- quick add ---------- */
+  .quick-add{
+    display:flex; gap: var(--space-2); padding: var(--space-3) var(--space-4);
+    padding-bottom: max(env(safe-area-inset-bottom), var(--space-3));
+    border-top: 1px solid var(--rule); background: var(--paper-raised); position: sticky; bottom:0;
+  }
+  .quick-add input{
+    flex:1; border: 1px solid var(--rule); background: var(--paper-raised-2); border-radius: var(--radius-sm);
+    padding: 10px 12px; font-size: 0.9375rem; color: var(--ink);
+  }
+  .quick-add input::placeholder{ color: var(--ink-faint); }
+  .quick-add button{
+    background: var(--accent); color: var(--accent-contrast); border:none; border-radius: var(--radius-sm);
+    padding: 0 var(--space-4); font-weight:600; font-size: 0.9375rem;
+  }
+  .quick-add button:disabled{ opacity: 0.4; }
+
+  /* ---------- new-list button + modal ---------- */
+  .new-list-bar{ padding: var(--space-3) var(--space-4); border-top: 1px solid var(--rule); background: var(--paper-raised); position:sticky; bottom:0; padding-bottom: max(env(safe-area-inset-bottom), var(--space-3)); }
+  .new-list-btn{
+    width:100%; background: var(--accent); color: var(--accent-contrast); border:none; border-radius: var(--radius-sm);
+    padding: 12px; font-weight:600; font-size: 0.9375rem; font-family: var(--font-body);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+
+  .modal-overlay{
+    position:fixed; inset:0; background: var(--overlay); display:flex; align-items:flex-end; justify-content:center; z-index:20;
+  }
+  .modal-overlay.hidden{ display:none; }
+  .modal{
+    background: var(--paper-raised); width:100%; max-width:480px; border-radius: 14px 14px 0 0;
+    padding: var(--space-5) var(--space-4); padding-bottom: max(env(safe-area-inset-bottom), var(--space-5));
+  }
+  .modal h2{ font-size:1.25rem; margin-bottom: var(--space-4); }
+  .field{ margin-bottom: var(--space-4); }
+  .field label{ display:block; font-family: var(--font-mono); font-size:0.6875rem; text-transform:uppercase; letter-spacing:0.08em; color: var(--ink-faint); margin-bottom:6px; }
+  .field input[type="text"]{
+    width:100%; border:1px solid var(--rule); background: var(--paper-raised-2); border-radius: var(--radius-sm);
+    padding: 10px 12px; font-size:1rem; color: var(--ink);
+  }
+  .field input[type="date"]{
+    border:1px solid var(--rule); background: var(--paper-raised-2); border-radius: var(--radius-sm);
+    padding: 8px 10px; font-size:0.9rem; color: var(--ink); font-family: var(--font-mono);
+  }
+  .range-row{ display:flex; align-items:center; gap: var(--space-2); }
+  .toggle-end{ background:none; border:none; color: var(--accent); font-size:0.8125rem; font-family: var(--font-mono); padding: 6px 0; }
+  .modal-actions{ display:flex; gap: var(--space-3); margin-top: var(--space-5); }
+  .btn{ flex:1; padding: 12px; border-radius: var(--radius-sm); border:none; font-weight:600; font-size:0.9375rem; }
+  .btn-primary{ background: var(--accent); color: var(--accent-contrast); }
+  .btn-ghost{ background: var(--paper-raised-2); color: var(--ink-soft); }
+  .btn-danger{ background: var(--danger); color: var(--accent-contrast); }
+  .confirm-message{ font-size: 0.9375rem; color: var(--ink-soft); line-height:1.5; }
+
+  .item-edit{
+    flex:1; min-width:0; border:1px solid var(--accent); background: var(--paper-raised);
+    border-radius: var(--radius-sm); padding: 4px 8px; font-size: 0.9375rem; color: var(--ink);
+    font-family: inherit;
+  }
+</style>
+
+<div id="shell">
+  <header>
+    <div class="brand-row" id="brandRow"></div>
+  </header>
+  <main id="main"></main>
+</div>
+
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <h2>New list</h2>
+    <div class="field">
+      <label for="newTitle">Title</label>
+      <input type="text" id="newTitle" placeholder="e.g. Today, Weekend errands, Trip prep…" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <div class="range-row">
+        <input type="date" id="newStart">
+        <span class="arrow" id="endWrap" style="display:none;">→</span>
+        <input type="date" id="newEnd" style="display:none;">
+      </div>
+      <button class="toggle-end" id="toggleEndBtn" type="button">+ add end date</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelNew" type="button">Cancel</button>
+      <button class="btn btn-primary" id="createNew" type="button">Create list</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="confirmOverlay">
+  <div class="modal">
+    <h2 id="confirmTitle">Are you sure?</h2>
+    <p class="confirm-message" id="confirmMessage"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="confirmCancel" type="button">Cancel</button>
+      <button class="btn btn-danger" id="confirmOk" type="button">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= storage ================= */
+  var STORE_KEY = "docket.v1";
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+  function todayISO(){
+    var d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0,10);
+  }
+
+  function seedData(){
+    var t = todayISO();
+    return {
+      lists: [
+        {
+          id: uid(), title: "Today", start: t, end: null, createdAt: Date.now(),
+          items: [
+            { id: uid(), text: "Reply to client emails", done: true, sublist: null },
+            { id: uid(), text: "Grocery shopping", done: false, sublist: {
+                title: "Grocery list",
+                items: [
+                  { id: uid(), text: "Milk", done: true },
+                  { id: uid(), text: "Eggs", done: true },
+                  { id: uid(), text: "Bread", done: false },
+                  { id: uid(), text: "Coffee", done: false }
+                ]
+              }
+            },
+            { id: uid(), text: "Gym — leg day", done: false, sublist: null },
+            { id: uid(), text: "Call the dentist to reschedule", done: false, sublist: null }
+          ]
+        }
+      ]
+    };
+  }
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(!raw) { var seed = seedData(); save(seed); return seed; }
+      return JSON.parse(raw);
+    }catch(e){
+      console.warn("Docket: could not read local storage, starting fresh.", e);
+      return seedData();
+    }
+  }
+  function save(data){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
+    catch(e){ console.warn("Docket: could not save to local storage.", e); }
+  }
+
+  var data = load();
+
+  /* ================= view state (not persisted) ================= */
+  var view = { screen: "home", listId: null, itemId: null, editing: false, editingDate: null, editingItem: null, returnTo: "home" };
+
+  /* ================= helpers ================= */
+  function findList(id){ return data.lists.find(function(l){ return l.id === id; }); }
+  function findItem(list, id){ return list.items.find(function(i){ return i.id === id; }); }
+
+  function effectiveEnd(list){ return list.end || list.start; }
+  function isPast(list){ return effectiveEnd(list) < todayISO(); }
+
+  function fmtDate(iso){
+    if(!iso) return "";
+    var d = new Date(iso + "T00:00:00");
+    return d.toLocaleDateString(undefined, { month:"short", day:"numeric" });
+  }
+  function fmtRange(list){
+    if(!list.end || list.end === list.start) return fmtDate(list.start);
+    return fmtDate(list.start) + " – " + fmtDate(list.end);
+  }
+  function countDone(items){
+    var done = 0;
+    items.forEach(function(i){ if(i.done) done++; });
+    return done;
+  }
+  function subCount(item){
+    if(!item.sublist) return null;
+    return { done: countDone(item.sublist.items), total: item.sublist.items.length };
+  }
+
+  function iconCheck(){
+    return '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.2 12L13 4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  function iconList(){
+    return '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h1M5 4h9M2 8h1M5 8h9M2 12h1M5 12h9"/></svg>';
+  }
+
+  /* ================= rendering ================= */
+  var mainEl = document.getElementById("main");
+  var brandRow = document.getElementById("brandRow");
+
+  function render(){
+    renderBrand();
+    if(view.screen === "home") renderHome();
+    else if(view.screen === "archive") renderArchive();
+    else if(view.screen === "list") renderListDetail(view.listId, null);
+    else if(view.screen === "sublist") renderListDetail(view.listId, view.itemId);
+  }
+
+  function renderBrand(){
+    if(view.screen === "home" || view.screen === "archive"){
+      brandRow.innerHTML =
+        '<div><div class="brand">Docket</div><small>your lists, kept straight</small></div>';
+    } else {
+      brandRow.innerHTML = "";
+    }
+  }
+
+  function tabsHTML(activeCurrent, currentCount, archiveCount){
+    return (
+      '<div class="tabs">' +
+        '<button class="tab ' + (activeCurrent ? "active" : "") + '" data-nav="home">Lists <span class="count">' + currentCount + '</span></button>' +
+        '<button class="tab ' + (!activeCurrent ? "active" : "") + '" data-nav="archive">Archive <span class="count">' + archiveCount + '</span></button>' +
+      '</div>'
+    );
+  }
+
+  function renderHome(){
+    var current = data.lists.filter(function(l){ return !isPast(l); })
+      .sort(function(a,b){ return a.start.localeCompare(b.start); });
+    var archived = data.lists.filter(isPast);
+
+    var html = tabsHTML(true, current.length, archived.length);
+
+    if(current.length === 0){
+      html += '<div class="empty"><span>Nothing on the books.</span>Tap “New list” below to start one.</div>';
+    } else {
+      html += '<div class="cards">' + current.map(cardHTML).join("") + '</div>';
+    }
+    mainEl.innerHTML = html;
+
+    var bar = ensureBottomBar("newlist");
+    bar.innerHTML = '<button class="new-list-btn" id="openNewList" type="button">+ New list</button>';
+    document.getElementById("openNewList").addEventListener("click", openNewListModal);
+
+    wireCommon();
+  }
+
+  function renderArchive(){
+    var archived = data.lists.filter(isPast)
+      .sort(function(a,b){ return b.start.localeCompare(a.start); });
+    var current = data.lists.filter(function(l){ return !isPast(l); });
+
+    var html = tabsHTML(false, current.length, archived.length);
+
+    if(archived.length === 0){
+      html += '<div class="empty"><span>No archived lists yet.</span>Past lists collect here automatically once their date passes.</div>';
+    } else {
+      html += '<div class="cards">' + archived.map(function(l){ return cardHTML(l, true); }).join("") + '</div>';
+    }
+    mainEl.innerHTML = html;
+    removeBottomBar();
+    wireCommon();
+
+    Array.prototype.forEach.call(document.querySelectorAll(".card-trash"), function(btn){
+      btn.addEventListener("click", function(e){
+        e.stopPropagation();
+        var id = btn.getAttribute("data-id");
+        var list = findList(id);
+        showConfirm('Delete "' + list.title + '" for good? This can’t be undone.', function(){
+          data.lists = data.lists.filter(function(l){ return l.id !== id; });
+          save(data); render();
+        });
+      });
+    });
+  }
+
+  function cardHTML(list, archivedView){
+    var done = countDone(list.items), total = list.items.length;
+    var pct = total ? Math.round((done/total)*100) : 0;
+    return (
+      '<button class="list-card ' + (archivedView ? "is-archived" : "") + '" data-open="' + list.id + '">' +
+        (archivedView ? '<button class="card-trash" data-id="' + list.id + '" title="Delete permanently">✕</button>' : "") +
+        '<div class="card-top">' +
+          '<div><div class="card-title">' + escapeHTML(list.title) + '</div>' +
+          '<div class="card-date ' + (archivedView ? "past" : "") + '">' + fmtRange(list) + '</div></div>' +
+          '<div class="card-count">' + done + '/' + total + '</div>' +
+        '</div>' +
+        '<div class="card-rule"><i style="width:' + pct + '%"></i></div>' +
+      '</button>'
+    );
+  }
+
+  function renderListDetail(listId, subItemId){
+    var list = findList(listId);
+    if(!list){ view.screen = "home"; return render(); }
+
+    var isSub = !!subItemId;
+    var parentItem = isSub ? findItem(list, subItemId) : null;
+    var container = isSub ? parentItem.sublist : list;
+    var items = container.items;
+
+    var html = '<div class="list-header">';
+    html += '<button class="icon-btn" data-back>‹</button>';
+    html += '<div class="titles">';
+    if(isSub){
+      html += '<div class="breadcrumb">' + escapeHTML(list.title) + ' ▸ ' + escapeHTML(parentItem.text) + '</div>';
+      html += '<input class="list-title" id="titleInput" value="' + escapeAttr(container.title) + '">';
+    } else {
+      html += '<input class="list-title" id="titleInput" value="' + escapeAttr(list.title) + '">';
+      html += '<div class="list-sub" id="dateArea"></div>';
+    }
+    html += '</div>';
+    html += '<div class="header-actions">';
+    html += '<button class="icon-btn" id="editToggle">' + (view.editing ? "Done" : "Edit") + '</button>';
+    if(!isSub){ html += '<button class="icon-btn danger" id="deleteListBtn" title="Delete list">🗑</button>'; }
+    if(isSub){ html += '<button class="icon-btn danger" id="removeSublistBtn" title="Remove sublist">🗑</button>'; }
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div class="items">' + items.map(function(item){
+      return itemRowHTML(item, isSub);
+    }).join("") + '</div>';
+
+    mainEl.innerHTML = html;
+
+    if(!isSub){
+      var dateArea = document.getElementById("dateArea");
+      renderDateArea(dateArea, list);
+    }
+
+    document.querySelector("[data-back]").addEventListener("click", function(){
+      if(isSub){ view.screen = "list"; view.itemId = null; }
+      else { view.screen = view.returnTo || "home"; view.listId = null; }
+      view.editing = false;
+      render();
+    });
+
+    document.getElementById("titleInput").addEventListener("change", function(e){
+      container.title = e.target.value.trim() || (isSub ? "Sublist" : "Untitled list");
+      save(data);
+    });
+
+    document.getElementById("editToggle").addEventListener("click", function(){
+      view.editing = !view.editing;
+      render();
+    });
+
+    if(!isSub){
+      document.getElementById("deleteListBtn").addEventListener("click", function(){
+        showConfirm('Delete "' + list.title + '" and all its items?', function(){
+          data.lists = data.lists.filter(function(l){ return l.id !== list.id; });
+          save(data);
+          view.screen = view.returnTo || "home"; view.listId = null; view.editing = false;
+          render();
+        });
+      });
+    } else {
+      document.getElementById("removeSublistBtn").addEventListener("click", function(){
+        showConfirm('Remove the sublist "' + container.title + '"? Its items will be deleted.', function(){
+          parentItem.sublist = null;
+          save(data);
+          view.screen = "list"; view.itemId = null;
+          render();
+        });
+      });
+    }
+
+    wireItemRows(container, isSub, list);
+
+    // quick add
+    var qa = ensureBottomBar("quickadd");
+    qa.innerHTML =
+      '<input type="text" id="quickAddInput" placeholder="Add an item…" autocomplete="off">' +
+      '<button id="quickAddBtn" type="button">Add</button>';
+    var qaInput = document.getElementById("quickAddInput");
+    var qaBtn = document.getElementById("quickAddBtn");
+    function doAdd(){
+      var text = qaInput.value.trim();
+      if(!text) return;
+      container.items.push({ id: uid(), text: text, done: false, sublist: isSub ? undefined : null });
+      save(data);
+      qaInput.value = "";
+      render();
+      var freshInput = document.getElementById("quickAddInput");
+      if(freshInput) freshInput.focus();
+    }
+    qaBtn.addEventListener("click", doAdd);
+    qaInput.addEventListener("keydown", function(e){ if(e.key === "Enter") doAdd(); });
+  }
+
+  function renderDateArea(el, list){
+    if(view.editingDate === list.id){
+      el.innerHTML =
+        '<div class="date-editor">' +
+          '<input type="date" id="editStart" value="' + list.start + '">' +
+          '<span class="arrow">→</span>' +
+          '<input type="date" id="editEnd" value="' + (list.end || "") + '" ' + (list.end ? "" : 'placeholder="optional"') + '>' +
+          '<button id="clearEnd" type="button">clear end</button>' +
+          '<button id="closeDateEdit" type="button">done</button>' +
+        '</div>';
+      document.getElementById("editStart").addEventListener("change", function(e){
+        list.start = e.target.value; if(list.end && list.end < list.start) list.end = list.start;
+        save(data); renderDateArea(el, list);
+      });
+      document.getElementById("editEnd").addEventListener("change", function(e){
+        list.end = e.target.value || null; save(data); renderDateArea(el, list);
+      });
+      document.getElementById("clearEnd").addEventListener("click", function(){
+        list.end = null; save(data); renderDateArea(el, list);
+      });
+      document.getElementById("closeDateEdit").addEventListener("click", function(){
+        view.editingDate = null; render();
+      });
+    } else {
+      el.innerHTML = '<button class="date-pill ' + (isPast(list) ? "past" : "") + '" id="datePillBtn">' + fmtRange(list) + '</button>';
+      document.getElementById("datePillBtn").addEventListener("click", function(){
+        view.editingDate = list.id; render();
+      });
+    }
+  }
+
+  function itemRowHTML(item, isSub){
+    var sc = isSub ? null : subCount(item);
+    var textCell = (item.id === view.editingItem)
+      ? '<input type="text" class="item-edit" data-edit-input="' + item.id + '" value="' + escapeAttr(item.text) + '">'
+      : '<button class="item-text" data-edit-text="' + item.id + '">' + escapeHTML(item.text) + '</button>';
+    return (
+      '<div class="item-row ' + (item.done ? "done" : "") + '" data-item="' + item.id + '">' +
+        (view.editing ? '<button class="remove-dot" data-remove="' + item.id + '">✕</button>' : "") +
+        '<button class="checkbox ' + (item.done ? "checked" : "") + '" data-toggle="' + item.id + '">' + iconCheck() + '</button>' +
+        textCell +
+        (isSub ? "" :
+          '<button class="sublist-btn ' + (item.sublist ? "has-sub" : "") + '" data-sublist="' + item.id + '">' +
+            iconList() + (sc ? '<span>' + sc.done + '/' + sc.total + '</span>' : '') +
+          '</button>'
+        ) +
+      '</div>'
+    );
+  }
+
+  function wireItemRows(container, isSub, list){
+    Array.prototype.forEach.call(document.querySelectorAll("[data-toggle]"), function(btn){
+      btn.addEventListener("click", function(){
+        var item = findItem(container, btn.getAttribute("data-toggle"));
+        item.done = !item.done;
+        save(data); render();
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-remove]"), function(btn){
+      btn.addEventListener("click", function(){
+        var id = btn.getAttribute("data-remove");
+        container.items = container.items.filter(function(i){ return i.id !== id; });
+        save(data); render();
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-edit-text]"), function(btn){
+      btn.addEventListener("click", function(){
+        view.editingItem = btn.getAttribute("data-edit-text");
+        render();
+      });
+    });
+    var editInput = document.querySelector("[data-edit-input]");
+    if(editInput){
+      editInput.focus();
+      editInput.setSelectionRange(editInput.value.length, editInput.value.length);
+      var commit = function(){
+        var item = findItem(container, editInput.getAttribute("data-edit-input"));
+        var val = editInput.value.trim();
+        if(item && val) item.text = val;
+        view.editingItem = null;
+        save(data); render();
+      };
+      editInput.addEventListener("blur", commit);
+      editInput.addEventListener("keydown", function(e){
+        if(e.key === "Enter"){ e.preventDefault(); editInput.blur(); }
+        if(e.key === "Escape"){ view.editingItem = null; render(); }
+      });
+    }
+    if(!isSub){
+      Array.prototype.forEach.call(document.querySelectorAll("[data-sublist]"), function(btn){
+        btn.addEventListener("click", function(){
+          var item = findItem(container, btn.getAttribute("data-sublist"));
+          if(!item.sublist){
+            item.sublist = { title: item.text + " list", items: [] };
+            save(data);
+          }
+          view.screen = "sublist"; view.listId = list.id; view.itemId = item.id; view.editing = false;
+          render();
+        });
+      });
+    }
+  }
+
+  /* ---------- bottom bars (quick add / new list) ---------- */
+  function ensureBottomBar(kind){
+    var existing = document.getElementById("bottomBar");
+    if(existing) existing.remove();
+    var bar = document.createElement("div");
+    bar.id = "bottomBar";
+    bar.className = kind === "quickadd" ? "quick-add" : "new-list-bar";
+    document.getElementById("shell").appendChild(bar);
+    return bar;
+  }
+  function removeBottomBar(){
+    var existing = document.getElementById("bottomBar");
+    if(existing) existing.remove();
+  }
+
+  /* ---------- tab / nav wiring ---------- */
+  function wireCommon(){
+    Array.prototype.forEach.call(document.querySelectorAll("[data-nav]"), function(btn){
+      btn.addEventListener("click", function(){
+        view.screen = btn.getAttribute("data-nav");
+        render();
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-open]"), function(card){
+      card.addEventListener("click", function(e){
+        if(e.target.closest(".card-trash")) return;
+        view.returnTo = view.screen;
+        view.screen = "list"; view.listId = card.getAttribute("data-open"); view.editing = false;
+        render();
+      });
+    });
+  }
+
+  /* ---------- new list modal ---------- */
+  var modalOverlay = document.getElementById("modalOverlay");
+  var newTitle = document.getElementById("newTitle");
+  var newStart = document.getElementById("newStart");
+  var newEnd = document.getElementById("newEnd");
+  var endWrap = document.getElementById("endWrap");
+  var toggleEndBtn = document.getElementById("toggleEndBtn");
+
+  function openNewListModal(){
+    newTitle.value = "";
+    newStart.value = todayISO();
+    newEnd.value = "";
+    newEnd.style.display = "none";
+    endWrap.style.display = "none";
+    toggleEndBtn.textContent = "+ add end date";
+    modalOverlay.classList.remove("hidden");
+    setTimeout(function(){ newTitle.focus(); }, 50);
+  }
+  function closeNewListModal(){ modalOverlay.classList.add("hidden"); }
+
+  toggleEndBtn.addEventListener("click", function(){
+    var showing = newEnd.style.display !== "none";
+    newEnd.style.display = showing ? "none" : "inline-block";
+    endWrap.style.display = showing ? "none" : "inline";
+    toggleEndBtn.textContent = showing ? "+ add end date" : "− remove end date";
+    if(showing) newEnd.value = "";
+  });
+  document.getElementById("cancelNew").addEventListener("click", closeNewListModal);
+  modalOverlay.addEventListener("click", function(e){ if(e.target === modalOverlay) closeNewListModal(); });
+  document.getElementById("createNew").addEventListener("click", function(){
+    var title = newTitle.value.trim() || "Untitled list";
+    var start = newStart.value || todayISO();
+    var end = newEnd.style.display !== "none" ? (newEnd.value || null) : null;
+    if(end && end < start) end = start;
+    var list = { id: uid(), title: title, start: start, end: end, createdAt: Date.now(), items: [] };
+    data.lists.push(list);
+    save(data);
+    closeNewListModal();
+    view.returnTo = "home";
+    view.screen = "list"; view.listId = list.id; view.editing = false;
+    render();
+  });
+
+  /* ---------- generic confirm dialog (native confirm()/prompt() don't fire inside a sandboxed preview) ---------- */
+  var confirmOverlay = document.getElementById("confirmOverlay");
+  var confirmMessage = document.getElementById("confirmMessage");
+  var confirmOk = document.getElementById("confirmOk");
+  var confirmCancel = document.getElementById("confirmCancel");
+  var pendingConfirm = null;
+
+  function showConfirm(message, onYes){
+    confirmMessage.textContent = message;
+    pendingConfirm = onYes;
+    confirmOverlay.classList.remove("hidden");
+  }
+  function hideConfirm(){
+    confirmOverlay.classList.add("hidden");
+    pendingConfirm = null;
+  }
+  confirmOk.addEventListener("click", function(){
+    var fn = pendingConfirm;
+    hideConfirm();
+    if(fn) fn();
+  });
+  confirmCancel.addEventListener("click", hideConfirm);
+  confirmOverlay.addEventListener("click", function(e){ if(e.target === confirmOverlay) hideConfirm(); });
+
+  /* ---------- misc ---------- */
+  function escapeHTML(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+  function escapeAttr(s){ return escapeHTML(s); }
+
+  /* ---------- service worker ---------- */
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(err){
+        console.warn("Docket: service worker registration failed (app still works online).", err);
+      });
+    });
+  }
+
+  render();
+})();
+</script>
