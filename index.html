@@ -93,7 +93,7 @@
   }
   h1,h2,h3{ font-family: var(--font-display); text-wrap: balance; margin:0; }
   button, input{ font-family: inherit; color: inherit; }
-  button{ cursor:pointer; }
+  button{ cursor:pointer; appearance: none; -webkit-appearance: none; }
   :focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -163,13 +163,14 @@
   main{ flex:1; overflow-y:auto; padding: var(--space-4); padding-bottom: var(--space-6); }
 
   /* ---------- list cards (home / archive) ---------- */
-  .cards{ display:flex; flex-direction:column; gap: var(--space-3); }
+  .cards{ display:flex; flex-direction:column; gap: var(--space-3); padding-top: var(--space-3) }
   .list-card{
     display:block; width:100%; text-align:left; background: var(--paper-raised-2);
     border: none; border-left: 3px solid var(--accent); border-radius: var(--radius-sm);
-    padding: var(--space-3) var(--space-4); position:relative;
+    padding: var(--space-3) var(--space-4); position:relative; cursor:pointer;
   }
   .list-card.is-archived{ border-left-color: var(--ink-faint); }
+  .list-card.is-archived .card-top{ padding-right: 22px; }
   .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap: var(--space-3); }
   .card-title{ font-family: var(--font-display); font-size: 1.0625rem; font-weight:600; }
   .card-count{ font-family: var(--font-mono); font-size: 0.8125rem; color: var(--ink-soft); white-space:nowrap; }
@@ -420,7 +421,7 @@
   function renderBrand(){
     if(view.screen === "home" || view.screen === "archive"){
       brandRow.innerHTML =
-        '<div><div class="brand">Do</div><small>your lists, kept straight</small></div>';
+        '<div><div class="brand">Do</div><small></small></div>';
     } else {
       brandRow.innerHTML = "";
     }
@@ -429,7 +430,7 @@
   function tabsHTML(activeCurrent, currentCount, archiveCount){
     return (
       '<div class="tabs">' +
-        '<button class="tab ' + (activeCurrent ? "active" : "") + '" data-nav="home">Lists <span class="count">' + currentCount + '</span></button>' +
+        '<button class="tab ' + (activeCurrent ? "active" : "") + '" data-nav="home">Upcoming <span class="count">' + currentCount + '</span></button>' +
         '<button class="tab ' + (!activeCurrent ? "active" : "") + '" data-nav="archive">Archive <span class="count">' + archiveCount + '</span></button>' +
       '</div>'
     );
@@ -443,9 +444,9 @@
     var html = tabsHTML(true, current.length, archived.length);
 
     if(current.length === 0){
-      html += '<div class="empty"><span>Nothing on the books.</span>Tap “New list” below to start one.</div>';
+      html += '<div class="empty"><span>No lists found.</span>Tap “New list” below to start one.</div>';
     } else {
-      html += '<div class="cards">' + current.map(cardHTML).join("") + '</div>';
+      html += '<div class="cards">' + current.map(function(l){ return cardHTML(l); }).join("") + '</div>';
     }
     mainEl.innerHTML = html;
 
@@ -485,19 +486,32 @@
     });
   }
 
+      ////////////////////// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////// ////////       BUTTON STYlE       ///////////////////////////////////////////////////////////////////////
+    ////////////////////// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   function cardHTML(list, archivedView){
     var done = countDone(list.items), total = list.items.length;
     var pct = total ? Math.round((done/total)*100) : 0;
     return (
-      '<button class="list-card ' + (archivedView ? "is-archived" : "") + '" data-open="' + list.id + '">' +
+      '<div class="list-card ' + (archivedView ? "is-archived" : "") + '" data-open="' + list.id + '" role="button" tabindex="0">' +
         (archivedView ? '<button class="card-trash" data-id="' + list.id + '" title="Delete permanently">✕</button>' : "") +
         '<div class="card-top">' +
           '<div><div class="card-title">' + escapeHTML(list.title) + '</div>' +
+
+          // Don't show date
+          // '</div>' +
+
+          // Show date
           '<div class="card-date ' + (archivedView ? "past" : "") + '">' + fmtRange(list) + '</div></div>' +
+
           '<div class="card-count">' + done + '/' + total + '</div>' +
         '</div>' +
         '<div class="card-rule"><i style="width:' + pct + '%"></i></div>' +
-      '</button>'
+      '</div>'
     );
   }
 
@@ -726,11 +740,15 @@
       });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-open]"), function(card){
-      card.addEventListener("click", function(e){
+      var open = function(e){
         if(e.target.closest(".card-trash")) return;
         view.returnTo = view.screen;
         view.screen = "list"; view.listId = card.getAttribute("data-open"); view.editing = false;
         render();
+      };
+      card.addEventListener("click", open);
+      card.addEventListener("keydown", function(e){
+        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); open(e); }
       });
     });
   }
